@@ -244,9 +244,9 @@ defmodule Tiny do
   # TODO: Perhaps we can get funky with `:erlang.list_to_float/1`?
   # TODO: Can we remove the third argument flipping?
   defp decode_number(bin) do
-    { count, float } = detect_number(bin, 0, 0, 0)
+    count = detect_number(bin, 0, 0)
     << number :: binary-size(count), rest :: binary >> = bin
-    { strip_ws(rest), rounded_float(Float.parse(number), float) }
+    { strip_ws(rest), parse_numeric(number) }
   end
 
   # Detects a number at the start of a binary. In the case of a leading zero, we
@@ -257,35 +257,34 @@ defmodule Tiny do
   # the accumulated count once we hit the logical end of a numeric value.
   # TODO: Function head multi-matching versus list lookup performance?
   # TODO: Is there a better way to track float v int?
-  defp detect_number(<< "0", rest :: binary >>, acc, 0, 0),
-    do: enforce_zero(rest, acc + 1, 0)
-  defp detect_number(<< ".", rest :: binary >>, acc, _zero, _f),
-    do: detect_number(rest, acc + 1, 1, 1)
-  defp detect_number(<< val, rest :: binary >>, acc, _zero, f) when val in '123456789eE',
-    do: detect_number(rest, acc + 1, 1, f)
-  defp detect_number(<< val, rest :: binary >>, acc, zero, f) when val in '0-+',
-    do: detect_number(rest, acc + 1, zero, f)
-  defp detect_number(_bin, acc, _zero, float),
-    do: { acc, float }
+  defp detect_number(<< "0", rest :: binary >>, acc, 0),
+    do: enforce_zero(rest, acc + 1)
+  defp detect_number(<< ".", rest :: binary >>, acc, _zero),
+    do: detect_number(rest, acc + 1, 1)
+  defp detect_number(<< val, rest :: binary >>, acc, _zero) when val in '123456789.eE',
+    do: detect_number(rest, acc + 1, 1)
+  defp detect_number(<< val, rest :: binary >>, acc, zero) when val in '0-+',
+    do: detect_number(rest, acc + 1, zero)
+  defp detect_number(_bin, acc, _zero),
+    do: acc
 
   # Enforces that a zero has a correct character following it in order to parse
   # and reject as necessary. JSON dictates that `-012` is invalid but that things
   # such as `-0.12` are valid, so we need to make sure we can detect these cases.
   # TODO: Function head multi-matching versus list lookup performance?
-  defp enforce_zero(<< ".", rest :: binary >>, acc, _),
-    do: detect_number(rest, acc + 1, 1, 1)
-  defp enforce_zero(<< val, rest :: binary >>, acc, f) when val in 'eE',
-    do: detect_number(rest, acc + 1, 1, f)
-  defp enforce_zero(<< val, _rest :: binary >>, acc, f) when not val in '0123456789+-',
-    do: { acc, f }
-  defp enforce_zero(<< >>, acc, f),
-    do: { acc, f }
+  defp enforce_zero(<< val, rest :: binary >>, acc) when val in '.eE',
+    do: detect_number(rest, acc + 1, 1)
+  defp enforce_zero(<< val, _rest :: binary >>, acc) when not val in '0123456789+-',
+    do: acc
+  defp enforce_zero(<< >>, acc),
+    do: acc
 
-  # Converts a correctly parsed Float into an Integer if required. This uses the
-  # logic that `100.0 == 100` and so rounding can tell us if our Float is an int.
-  # TODO: Is there a better way to detect and do this rounding?
-  defp rounded_float({ num, "" }, float),
-    do: if float == 0, do: trunc(num), else: num
+  defp parse_numeric(val) do
+    case Integer.parse(val) do
+      { num, "" } -> num
+      _unknown_ -> { num, "" } = Float.parse(val); num
+    end
+  end
 
   # Entry point for parsing object values. This makes heavy use of other functions
   # in order to avoid re-inventing the wheel. If the remainder has a leading `"`
