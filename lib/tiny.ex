@@ -115,7 +115,7 @@ defmodule Tiny do
   defp encode_escape(<< val :: utf8, rest :: binary >>) when val > 0x7F,
     do: [ convert_sequence(val) | encode_escape(rest) ]
   defp encode_escape(bin) do
-    valid_count = find_escaped(bin, 0)
+    valid_count = detect_string(bin, 0, &find_escaped/3)
     << value :: binary-size(valid_count), rest :: binary >> = bin
     [ value | encode_escape(rest) ]
   end
@@ -123,15 +123,10 @@ defmodule Tiny do
   # Locates the length of a correctly escaped binary so that we can pull it back
   # in a pattern match using a subreference to avoid writing multiple times. We
   # simply look at ranges to determine things which have been correctly escaped.
-  defp find_escaped(<< val, _rest :: binary >>, acc) when val <= 0x1F,
+  defp find_escaped(<< _val :: utf8, _rest :: binary >>, acc, _ca),
     do: valid_count!(acc)
-  defp find_escaped(<< val, _rest :: binary >>, acc) when val in '"\\',
+  defp find_escaped("", acc, _ca),
     do: valid_count!(acc)
-  defp find_escaped(<< val, rest :: binary >>, acc) when val < 0x80,
-    do: find_escaped(rest, acc + 1)
-  defp find_escaped(<< _val :: utf8, _rest :: binary >>, acc),
-    do: valid_count!(acc)
-  defp find_escaped("", acc), do: valid_count!(acc)
 
   # Converts a character integer to a list before passing it through to have the
   # correct padding applied in order to construct a valid control sequence.
@@ -301,10 +296,15 @@ defmodule Tiny do
   defp decode_string(<< "\"", rest :: binary >>, acc),
     do: { strip_ws(rest), :erlang.iolist_to_binary(acc) }
   defp decode_string(bin, acc) do
-    valid_count = detect_string(bin, 0)
+    valid_count = detect_string(bin, 0, &shift_point/3)
     << value :: binary-size(valid_count), rest :: binary >> = bin
     decode_string(rest, [ acc, value ])
   end
+
+  # Shifts an accumulator along based upon the value of the start UTF-8 codepoint.
+  # This allows us to iterate along a binary whilst tracking unicode characters.
+  defp shift_point(<< val :: utf8, rest :: binary >>, acc, ca),
+    do: detect_string(rest, acc + cp_value(val), ca)
 
   # Welcome to the land of unicode and escapes. This is where we make sure that
   # incoming sequences are correctly escaped and converted correctly. The first
@@ -349,12 +349,14 @@ defmodule Tiny do
   # can we just keep on moving through by calling this function recursively and
   # incrementing the counter used as an accumulator. Note that we increment by
   # more than just `1` depending on where the codepoint value lies in the table.
-  defp detect_string(<< val, _rest :: binary >>, acc) when val in '"\\',
+  defp detect_string(<< val, _rest :: binary >>, acc, _ca) when val <= 0x1F,
     do: valid_count!(acc)
-  defp detect_string(<< val, rest :: binary >>, acc) when val < 0x80,
-    do: detect_string(rest, acc + 1)
-  defp detect_string(<< val :: utf8, rest :: binary >>, acc),
-    do: detect_string(rest, acc + cp_value(val))
+  defp detect_string(<< val, _rest :: binary >>, acc, _ca) when val in '"\\',
+    do: valid_count!(acc)
+  defp detect_string(<< val, rest :: binary >>, acc, ca) when val < 0x80,
+    do: detect_string(rest, acc + 1, ca)
+  defp detect_string(bin, acc, ca),
+    do: ca.(bin, acc, ca)
 
   # Strips leading whitespace from an input binary, by subreferencing the binary.
   # This means that we don't create anything new, purely reference what already

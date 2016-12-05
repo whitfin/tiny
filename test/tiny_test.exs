@@ -209,6 +209,10 @@ defmodule TinyTest do
     do_test_error("{\u000c}")
     do_test_error("{\ufeff}")
   end
+
+  # leave this one alone, it's an unescaped newline
+  test_error("whitespace parsing", ~s(["new
+line"]))
   test_verify("whitespace parsing", "{\r\n}", %{}, "{}")
   test_verify("whitespace parsing", "{\n\n\r\n}", %{}, "{}")
   test_verify("whitespace parsing", "{\t}", %{}, "{}")
