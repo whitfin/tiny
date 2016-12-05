@@ -42,8 +42,7 @@ defmodule Tiny do
   @spec encode(json, Keyword.t) ::
     { :ok, binary | iodata } |
     { :error, atom }
-  def encode(val, opts \\ []),
-    do: wrap(&encode!/2, val, opts)
+  def encode(val, opts \\ []), do: wrap(&encode!/2, val, opts)
 
   @doc """
   Encdoes a JSON compatible value to iodata or a binary.
@@ -55,23 +54,19 @@ defmodule Tiny do
   def encode!(val, opts \\ []) do
     result = do_encode(val)
     opts[:iodata] && result || :erlang.iolist_to_binary(result)
-  rescue _ ->
-    raise ArgumentError
+  rescue _ -> raise ArgumentError
   end
 
   # Entry point of the main encoding path. We match on the value types before
   # handling them separately due to each being encoded differently. All calls
   # for encoding should happen via this function. We only support types which
   # have a direct equivalent in the JSON specification (e.g. no Tuples).
-  # TODO: Is it faster to split the binary/atom definition and avoid coercion?
-  defp do_encode(nil),
-    do: "null"
-  defp do_encode(val) when is_number(val) or is_boolean(val),
-    do: to_string(val)
+  defp do_encode(nil), do: "null"
+  defp do_encode(val) when is_number(val) or is_boolean(val), do: to_string(val)
   defp do_encode(val) when is_binary(val) or is_atom(val),
     do: [ ?", encode_escape(coerce_key(val)), ?" ]
   defp do_encode(val) when is_list(val),
-    do: [ ?[, Enum.reduce(val, [], &list_encode/2), ?] ]
+    do: [ ?[, :lists.foldl(&list_encode/2, [], val), ?] ]
   defp do_encode(val) when is_map(val),
     do: [ ?{, Enum.reduce(val, [], &pair_encode/2), ?} ]
 
@@ -80,25 +75,20 @@ defmodule Tiny do
   # the protocol). Anything else isn't a valid JSON key, so we just error as it's
   # not for us to decide how to convert other keys to binary - it's better for
   # the user to be explicit rather than putting the decision on Tiny.
-  defp coerce_key(bin) when is_binary(bin),
-    do: bin
-  defp coerce_key(atom),
-    do: Atom.to_string(atom)
+  defp coerce_key(bin) when is_binary(bin), do: bin
+  defp coerce_key(atom), do: Atom.to_string(atom)
 
   # Encodes a list to the binary equivalent, by just passing each value back into
   # our `do_encode/1` function. For every value other than the first, we have to
   # place a comma before the encoded value to separate the JSON correctly.
   # TODO: Is there an inefficiency here with the recursion/extra list?
-  defp list_encode(val, []),
-    do: [ do_encode(val) ]
-  defp list_encode(val, acc),
-    do: [ acc, ?, | list_encode(val, []) ]
+  defp list_encode(val, []),  do: [ do_encode(val) ]
+  defp list_encode(val, acc), do: [ acc, ?, | list_encode(val, []) ]
 
   # Encodes map pairs by coercing the key to a binary and encoding both the key
   # and the value using the `do_encode/1` function. Just like `list_encode/2`,
   # we only add the comma separation in the case of a non-empty set.
   # TODO: Inefficiency due to ordering?
-  # TODO: Can we avoid Enum easily?
   defp pair_encode({ key, val }, []),
     do: [ do_encode(coerce_key(key)), ?:, do_encode(val) ]
   defp pair_encode({ _key, _val } = pair, acc),
@@ -110,8 +100,7 @@ defmodule Tiny do
   # other control characters to their `\u` form to include them in the output.
   # TODO: Is the first iteration block necessary?
   # TODO: Can we compile the padded sequences for better performance?
-  defp encode_escape(""),
-    do: []
+  defp encode_escape(""), do: []
   for { key, replace } <- List.zip([ '"\\\n\t\r\f\b', '"\\ntrfb' ]) do
     defp encode_escape(<< unquote(key), rest :: binary >>),
       do: [ unquote("\\" <> << replace >>) | encode_escape(rest) ]
@@ -134,7 +123,6 @@ defmodule Tiny do
   # Locates the length of a correctly escaped binary so that we can pull it back
   # in a pattern match using a subreference to avoid writing multiple times. We
   # simply look at ranges to determine things which have been correctly escaped.
-  # TODO: Cross section the guards to remove duplicates for faster performance
   defp find_escaped(<< val, _rest :: binary >>, acc) when val <= 0x1F,
     do: valid_count!(acc)
   defp find_escaped(<< val, _rest :: binary >>, acc) when val in '"\\',
@@ -143,18 +131,15 @@ defmodule Tiny do
     do: find_escaped(rest, acc + 1)
   defp find_escaped(<< _val :: utf8, _rest :: binary >>, acc),
     do: valid_count!(acc)
-  defp find_escaped("", acc),
-    do: valid_count!(acc)
+  defp find_escaped("", acc), do: valid_count!(acc)
 
   # Converts a character integer to a list before passing it through to have the
   # correct padding applied in order to construct a valid control sequence.
-  defp convert_sequence(char),
-    do: char |> :erlang.integer_to_list(16) |> pad_sequence
+  defp convert_sequence(char), do: pad_sequence(:erlang.integer_to_list(char, 16))
 
   # Converts a character to it's `\u` form so that it can be safely included in
   # our JSON output (as control chars without escapes are invalid).
-  defp pad_sequence(seq),
-    do: [ "\\u", :binary.copy("0", 4 - length(seq)) | seq ]
+  defp pad_sequence(seq), do: [ "\\u", :binary.copy("0", 4 - length(seq)) | seq ]
 
   ############
   # Decoding
@@ -169,8 +154,7 @@ defmodule Tiny do
   @spec decode(binary, Keyword.t) ::
     { :ok, json } |
     { :error, atom }
-  def decode(bin, opts \\ []),
-    do: wrap(&decode!/2, bin, opts)
+  def decode(bin, opts \\ []), do: wrap(&decode!/2, bin, opts)
 
   @doc """
   Decodes a JSON inout binary to an Elixir term.
@@ -181,10 +165,8 @@ defmodule Tiny do
   @spec decode!(binary, Keyword.t) :: json | no_return
   def decode!(bin, _opts \\ []) when is_binary(bin) do
     { rest, value } = do_decode(strip_ws(bin))
-    "" = strip_ws(rest)
-    value
-  rescue _ ->
-    raise ArgumentError
+    "" = strip_ws(rest); value
+  rescue _ -> raise ArgumentError
   end
 
   # Entry point of the main decoding path. We have to inspect the first character
@@ -192,19 +174,12 @@ defmodule Tiny do
   # straightforward to see the logical separation here via the matching taking
   # place. Please note how only some use `strip_ws(rest)`, as not all characters
   # need whitespace stripping following them - important to recognise.
-  # TODO: Is it faster to multi-head the number detection?
-  defp do_decode(<< "\"", rest :: binary >>),
-    do: decode_string(rest, "")
-  defp do_decode(<< "{", rest :: binary >>),
-    do: decode_object(strip_ws(rest), [])
-  defp do_decode(<< "[", rest :: binary >>),
-    do: decode_array(strip_ws(rest), [])
-  defp do_decode(<< "true", rest :: binary >>),
-    do: { strip_ws(rest), true }
-  defp do_decode(<< "false", rest :: binary >>),
-    do: { strip_ws(rest), false }
-  defp do_decode(<< "null", rest :: binary >>),
-    do: { strip_ws(rest), nil }
+  defp do_decode(<< "\"",    rem :: binary >>), do: decode_string(rem, "")
+  defp do_decode(<< "{",     rem :: binary >>), do: decode_object(strip_ws(rem), [])
+  defp do_decode(<< "[",     rem :: binary >>), do: decode_array(strip_ws(rem), [])
+  defp do_decode(<< "true",  rem :: binary >>), do: { strip_ws(rem), true }
+  defp do_decode(<< "false", rem :: binary >>), do: { strip_ws(rem), false }
+  defp do_decode(<< "null",  rem :: binary >>), do: { strip_ws(rem), nil }
   defp do_decode(<< val, _rest :: binary >> = bin) when val in '0123456789-',
     do: decode_number(bin)
 
@@ -215,9 +190,7 @@ defmodule Tiny do
   # through to `enforce_array_terminator/2` and prepend the value to the acc.
   # It should be noted that the remainder coming back from `do_decode/1` will
   # have always have already had leading whitespace trimmed (I hope).
-  # TODO: This entire array decoding sequence just *feels* inefficient.
-  defp decode_array(<< "]", rest :: binary >>, []),
-    do: { strip_ws(rest), [] }
+  defp decode_array(<< "]", rest :: binary >>, []), do: { strip_ws(rest), [] }
   defp decode_array(bin, acc) do
     { rest, value } = do_decode(bin)
     enforce_array_terminator(rest, [ value | acc ])
@@ -240,13 +213,10 @@ defmodule Tiny do
   # Once we know our valid length, we pluck the numbder and pass it through to
   # be parsed. We then do a little bit of cleanup because `Float.parse/1` will
   # return a Float even in case of an Integer, so we round when necessary.
-  # TODO: Maybe we can beat `Float.parse/1`?
-  # TODO: Perhaps we can get funky with `:erlang.list_to_float/1`?
-  # TODO: Can we remove the third argument flipping?
   defp decode_number(bin) do
     count = detect_number(bin, 0, 0)
     << number :: binary-size(count), rest :: binary >> = bin
-    { strip_ws(rest), parse_numeric(number) }
+    { strip_ws(rest), parse_numeric(Integer.parse(number), number) }
   end
 
   # Detects a number at the start of a binary. In the case of a leading zero, we
@@ -255,8 +225,6 @@ defmodule Tiny do
   # zeroes, we flip the third argument to make it possible to receive zeroes in
   # future. Otherwise we just count on remaining valid characters, and return
   # the accumulated count once we hit the logical end of a numeric value.
-  # TODO: Function head multi-matching versus list lookup performance?
-  # TODO: Is there a better way to track float v int?
   defp detect_number(<< "0", rest :: binary >>, acc, 0),
     do: enforce_zero(rest, acc + 1)
   defp detect_number(<< ".", rest :: binary >>, acc, _zero),
@@ -265,25 +233,25 @@ defmodule Tiny do
     do: detect_number(rest, acc + 1, 1)
   defp detect_number(<< val, rest :: binary >>, acc, zero) when val in '0-+',
     do: detect_number(rest, acc + 1, zero)
-  defp detect_number(_bin, acc, _zero),
-    do: acc
+  defp detect_number(_bin, acc, _zero), do: acc
 
   # Enforces that a zero has a correct character following it in order to parse
   # and reject as necessary. JSON dictates that `-012` is invalid but that things
   # such as `-0.12` are valid, so we need to make sure we can detect these cases.
-  # TODO: Function head multi-matching versus list lookup performance?
   defp enforce_zero(<< val, rest :: binary >>, acc) when val in '.eE',
     do: detect_number(rest, acc + 1, 1)
   defp enforce_zero(<< val, _rest :: binary >>, acc) when not val in '0123456789+-',
     do: acc
-  defp enforce_zero(<< >>, acc),
-    do: acc
+  defp enforce_zero(<< >>, acc), do: acc
 
-  defp parse_numeric(val) do
-    case Integer.parse(val) do
-      { num, "" } -> num
-      _unknown_ -> { num, "" } = Float.parse(val); num
-    end
+  # Parses a numeric value to the correct numeric type in Elixir. This suck and
+  # is inefficient, but it's required to avoid having to write a number parser.
+  # We try to parse as an Integer, and if that fails (i.e. in case of decimal or
+  # exponent), then we try to parse as a Float. Neither allow trailing characters.
+  defp parse_numeric({ num, "" }, _val), do: num
+  defp parse_numeric(_error, val) do
+    { num, "" } = Float.parse(val)
+      num
   end
 
   # Entry point for parsing object values. This makes heavy use of other functions
@@ -302,8 +270,7 @@ defmodule Tiny do
     { rem2, val } = do_decode(strip_ws(rem1))
     enforce_object_terminator(rem2, [ { key, val } | acc ])
   end
-  defp decode_object(<< "}", rest :: binary >>, []),
-    do: { strip_ws(rest), %{} }
+  defp decode_object(<< "}", rest :: binary >>, []), do: { strip_ws(rest), %{} }
 
   # Because the remainders passed in have had leading whitespace trimmed, the
   # only valid characters to come next are the comma and the curly terminator.
@@ -311,7 +278,6 @@ defmodule Tiny do
   # back through to the initial array decoder. If we've hit the end of the input
   # then we just remove the leading whitespace, and construct a map from the
   # values - making sure that we reverse to keep the last value set for a key.
-  # TODO: Can this be combined with `enforce_array_terminator/2`?
   defp enforce_object_terminator(<< ",", rest :: binary >>, acc),
     do: decode_object(strip_ws(rest), acc)
   defp enforce_object_terminator(<< "}", rest :: binary >>, acc),
@@ -352,7 +318,6 @@ defmodule Tiny do
   # enforce some rules related to what makes a surrogate pair (in the guards),
   # before converting the pair to a codepoint. If this is confusing, the Wiki
   # page for UTF-16 has a fairly good overview of what exactly is going on here.
-  # TODO: Can this be made more efficient?
   for { key, replace } <- List.zip(['"\\ntr/fb', '"\\\n\t\r/\f\b']) do
     defp string_escape(<< unquote(key), rest :: binary >>),
       do: { rest, unquote(replace) }
@@ -370,6 +335,13 @@ defmodule Tiny do
   # Utilities
   ############
 
+  # Calculates the length of a codepoint as used in `dectect_string/2` to move
+  # along the string input a given amount of places. Abstracted out to remove
+  # code bloat based on function head matching.
+  defp cp_value(val) when val < 0x800, do: 2
+  defp cp_value(val) when val < 0x10000, do: 3
+  defp cp_value(_val), do: 4
+
   # This function essentially pulls back a count of valid bytes inside the input,
   # by moving through and validating against various characters to determine if
   # we can continue or not. If we can't, we return the count so that we can then
@@ -377,26 +349,18 @@ defmodule Tiny do
   # can we just keep on moving through by calling this function recursively and
   # incrementing the counter used as an accumulator. Note that we increment by
   # more than just `1` depending on where the codepoint value lies in the table.
-  # TODO: Can this be improved and made more efficient by better matching?
   defp detect_string(<< val, _rest :: binary >>, acc) when val in '"\\',
     do: valid_count!(acc)
   defp detect_string(<< val, rest :: binary >>, acc) when val < 0x80,
     do: detect_string(rest, acc + 1)
-  defp detect_string(<< val :: utf8, rest :: binary >>, acc) when val < 0x800,
-    do: detect_string(rest, acc + 2)
-  defp detect_string(<< val :: utf8, rest :: binary >>, acc) when val < 0x10000,
-    do: detect_string(rest, acc + 3)
-  defp detect_string(<< _val :: utf8, rest :: binary >>, acc),
-    do: detect_string(rest, acc + 4)
+  defp detect_string(<< val :: utf8, rest :: binary >>, acc),
+    do: detect_string(rest, acc + cp_value(val))
 
   # Strips leading whitespace from an input binary, by subreferencing the binary.
   # This means that we don't create anything new, purely reference what already
   # exists. We make sure to cover all forms of whitespace when stripping.
-  # TODO: Is multi-head matching faster on the list check?
-  defp strip_ws(<< val, rest :: binary >>) when val in '\s\n\t\r',
-    do: strip_ws(rest)
-  defp strip_ws(rest),
-    do: rest
+  defp strip_ws(<< v, rest :: binary >>) when v in '\s\n\t\r', do: strip_ws(rest)
+  defp strip_ws(rest), do: rest
 
   # Simply checks to see whether we have a valid count or not - with a valid
   # count being anything that's above zero. We don't deal in negatives anywhere

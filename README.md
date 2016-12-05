@@ -11,7 +11,7 @@ Why you should use Tiny:
 - Conforms to the standard of accepting the last value set to a key in a Map
 - Conforms to 100% of the spec per [JSONTestSuite](https://github.com/nst/JSONTestSuite) (the only Elixir parser to do so)
 - Extremely fast; initial benchmarks show slight speed gains vs. Poison (especially for larger inputs)
-- Extremely small; initial implementation only 169 SLOC (w/o docs)
+- Extremely small; initial implementation only 153 SLOC (w/o docs)
 
 Why you should not use Tiny:
 
