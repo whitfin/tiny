@@ -1,13 +1,34 @@
 defmodule Tiny.Mixfile do
   use Mix.Project
 
+  @url_docs "http://hexdocs.pm/tiny"
+  @url_github "https://github.com/zackehh/tiny"
+
   def project do
     [app: :tiny,
+     description: "Tiny JSON parser for Elixir",
      version: "1.0.0",
      elixir: "~> 1.2",
-     build_embedded: Mix.env == :prod,
-     start_permanent: Mix.env == :prod,
-     deps: deps()]
+     deps: deps(),
+     package: %{
+       files: [
+         "lib",
+         "mix.exs",
+         "LICENSE",
+         "README.md"
+       ],
+       licenses: [ "MIT" ],
+       links: %{
+         "Docs" => @url_docs,
+         "GitHub" => @url_github
+       },
+       maintainers: [ "Isaac Whitfield" ]
+     },
+     docs: [
+       extras: [ "README.md" ],
+       source_ref: "master",
+       source_url: @url_github
+     ]]
   end
 
   # Configuration for the OTP application
