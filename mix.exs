@@ -6,6 +6,7 @@ defmodule Tiny.Mixfile do
 
   def project do
     [app: :tiny,
+     name: "Tiny",
      description: "Tiny JSON parser for Elixir",
      version: "1.0.0",
      elixir: "~> 1.2",
