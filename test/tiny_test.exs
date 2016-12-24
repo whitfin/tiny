@@ -30,10 +30,12 @@ defmodule TinyTest.Macro do
     result1 = Tiny.decode!(input)
     result2 = Tiny.encode!(result1)
     result3 = Tiny.decode!(result2)
+    result4 = Tiny.encode_to_iodata!(result1)
 
     assert(result1 === output)
     assert(result2 == encoded)
     assert(result3 == result1)
+    assert(:erlang.iolist_to_binary(result4) == encoded)
   end
 
 end
