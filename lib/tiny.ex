@@ -45,7 +45,7 @@ defmodule Tiny do
   def encode(val, opts \\ []), do: wrap(&encode!/2, val, opts)
 
   @doc """
-  Encdoes a JSON compatible value to iodata or a binary.
+  Encodes a JSON compatible value to iodata or a binary.
 
   Rather than return Tuples, this function will raise `ArgumentError` on invalid
   inputs. No information is provided beyond the error, so log context as needed.
@@ -55,6 +55,24 @@ defmodule Tiny do
     result = do_encode(val)
     opts[:iodata] && result || :erlang.iolist_to_binary(result)
   rescue _ -> raise ArgumentError
+  end
+
+  @doc """
+  Safely encodes a value to JSON as iodata.
+  """
+  @spec encode_to_iodata(json, Keyword.t) ::
+    { :ok, iodata } |
+    { :error, atom }
+  def encode_to_iodata(val, opts \\ []) do
+    encode(val, [iodata: true] ++ opts)
+  end
+
+  @doc """
+  Encodes a value to JSON as iodata.
+  """
+  @spec encode_to_iodata!(json, Keyword.t) :: iodata | no_return
+  def encode_to_iodata!(val, opts \\ []) do
+    encode!(val, [iodata: true] ++ opts)
   end
 
   # Entry point of the main encoding path. We match on the value types before
