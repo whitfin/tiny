@@ -63,17 +63,15 @@ defmodule Tiny do
   @spec encode_to_iodata(json, Keyword.t) ::
     { :ok, iodata } |
     { :error, atom }
-  def encode_to_iodata(val, opts \\ []) do
-    encode(val, [iodata: true] ++ opts)
-  end
+  def encode_to_iodata(val, opts \\ []),
+    do: encode(val, [ iodata: true ] ++ opts)
 
   @doc """
   Encodes a value to JSON as iodata.
   """
   @spec encode_to_iodata!(json, Keyword.t) :: iodata | no_return
-  def encode_to_iodata!(val, opts \\ []) do
-    encode!(val, [iodata: true] ++ opts)
-  end
+  def encode_to_iodata!(val, opts \\ []),
+    do: encode!(val, [ iodata: true ] ++ opts)
 
   # Entry point of the main encoding path. We match on the value types before
   # handling them separately due to each being encoded differently. All calls
