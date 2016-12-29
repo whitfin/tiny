@@ -2,7 +2,10 @@
 /_build
 
 # Benchmark directory for storing local performance tests.
-/bench
+/bench/*
+!/bench/resources
+!/bench/decode_bench.exs
+!/bench/encode_bench.exs
 
 # If you run "mix test --cover", coverage assets end up here.
 /cover

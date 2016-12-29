@@ -42,7 +42,8 @@ defmodule Tiny do
   @spec encode(json, Keyword.t) ::
     { :ok, binary | iodata } |
     { :error, atom }
-  def encode(val, opts \\ []), do: wrap(&encode!/2, val, opts)
+  def encode(val, opts \\ []),
+    do: wrap(&encode!/2, val, opts)
 
   @doc """
   Encodes a JSON compatible value to iodata or a binary.
@@ -58,7 +59,9 @@ defmodule Tiny do
   end
 
   @doc """
-  Safely encodes a value to JSON as iodata. Same as passing `iodata: true` to `encode`.
+  Safely encodes a value to JSON as iodata.
+
+  Same as passing `[ iodata: true ]` to `encode/2`.
   """
   @spec encode_to_iodata(json, Keyword.t) ::
     { :ok, iodata } |
@@ -67,7 +70,9 @@ defmodule Tiny do
     do: encode(val, [ iodata: true ] ++ opts)
 
   @doc """
-  Encodes a value to JSON as iodata. Same as passing `iodata: true` to `encode!`.
+  Encodes a value to JSON as iodata.
+
+  Same as passing `[ iodata: true ]` to `encode!/2`.
   """
   @spec encode_to_iodata!(json, Keyword.t) :: iodata | no_return
   def encode_to_iodata!(val, opts \\ []),

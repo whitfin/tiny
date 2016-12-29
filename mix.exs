@@ -53,7 +53,14 @@ defmodule Tiny.Mixfile do
       # Dependencies only used for local development and testing
       { :credo,  "~> 0.5",  optional: true, only: [ :dev, :test ] },
       { :ex_doc, "~> 0.14", optional: true, only: [ :dev, :test ] },
-      { :exprof, "~> 0.2",  optional: true, only: [ :dev, :test ] }
+      { :exprof, "~> 0.2",  optional: true, only: [ :dev, :test ] },
+      # Dependencies only used when benchmarking JSON libraries
+      { :benchfella, "~> 0.3", optional: true, only: [ :dev, :test ] },
+      # JSON libraries used when setting up benchmarking suites
+      { :exjsx,  "~> 3.0", optional: true, only: [ :dev, :test ] },
+      { :jiffy,  "~> 0.0", optional: true, only: [ :dev, :test ] },
+      { :json,   "~> 1.0", optional: true, only: [ :dev, :test ] },
+      { :poison, "~> 3.0", optional: true, only: [ :dev, :test ] }
     ]
   end
 end
