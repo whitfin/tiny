@@ -8,7 +8,7 @@ defmodule Tiny.Mixfile do
     [app: :tiny,
      name: "Tiny",
      description: "Tiny JSON parser for Elixir",
-     version: "1.0.0",
+     version: "1.0.1",
      elixir: "~> 1.2",
      deps: deps(),
      package: %{
