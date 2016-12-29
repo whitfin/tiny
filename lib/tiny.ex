@@ -58,7 +58,7 @@ defmodule Tiny do
   end
 
   @doc """
-  Safely encodes a value to JSON as iodata.
+  Safely encodes a value to JSON as iodata. Same as passing `iodata: true` to `encode`.
   """
   @spec encode_to_iodata(json, Keyword.t) ::
     { :ok, iodata } |
@@ -67,7 +67,7 @@ defmodule Tiny do
     do: encode(val, [ iodata: true ] ++ opts)
 
   @doc """
-  Encodes a value to JSON as iodata.
+  Encodes a value to JSON as iodata. Same as passing `iodata: true` to `encode!`.
   """
   @spec encode_to_iodata!(json, Keyword.t) :: iodata | no_return
   def encode_to_iodata!(val, opts \\ []),
