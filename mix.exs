@@ -2,7 +2,7 @@ defmodule Tiny.Mixfile do
   use Mix.Project
 
   @url_docs "http://hexdocs.pm/tiny"
-  @url_github "https://github.com/zackehh/tiny"
+  @url_github "https://github.com/whitfin/tiny"
 
   def project do
     [app: :tiny,
@@ -57,10 +57,10 @@ defmodule Tiny.Mixfile do
       # Dependencies only used when benchmarking JSON libraries
       { :benchfella, "~> 0.3", optional: true, only: [ :dev, :test ] },
       # JSON libraries used when setting up benchmarking suites
-      { :exjsx,  "~> 3.0", optional: true, only: [ :dev, :test ] },
-      { :jiffy,  "~> 0.0", optional: true, only: [ :dev, :test ] },
-      { :json,   "~> 1.0", optional: true, only: [ :dev, :test ] },
-      { :poison, "~> 3.0", optional: true, only: [ :dev, :test ] }
+      { :exjsx,   "~> 4.0", optional: true, only: [ :dev, :test ] },
+      { :jiffy,  "~> 0.15", optional: true, only: [ :dev, :test ] },
+      { :jason,  "~> 1.1",  optional: true, only: [ :dev, :test ] },
+      { :poison,  "~> 4.0", optional: true, only: [ :dev, :test ] }
     ]
   end
 end

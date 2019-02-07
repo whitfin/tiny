@@ -10,8 +10,8 @@ defmodule DecodeBench do
     :ok
   end
 
-  bench "decode (large) (json)", [ input: gen_large_sample() ] do
-    JSON.decode!(input)
+  bench "decode (large) (jason)", [ input: gen_large_sample() ] do
+    Jason.decode!(input)
     :ok
   end
 
@@ -39,8 +39,8 @@ defmodule DecodeBench do
     :ok
   end
 
-  bench "decode (small) (json)", [ input: gen_small_sample() ] do
-    JSON.decode!(input)
+  bench "decode (small) (jason)", [ input: gen_small_sample() ] do
+    Jason.decode!(input)
     :ok
   end
 

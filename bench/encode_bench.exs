@@ -10,8 +10,8 @@ defmodule EncodeBench do
     :ok
   end
 
-  bench "encode (large) (json)", [ input: gen_large_sample() ] do
-    JSON.encode!(input)
+  bench "encode (large) (jason)", [ input: gen_large_sample() ] do
+    Jason.encode!(input)
     :ok
   end
 
@@ -39,8 +39,8 @@ defmodule EncodeBench do
     :ok
   end
 
-  bench "encode (small) (json)", [ input: gen_small_sample() ] do
-    JSON.encode!(input)
+  bench "encode (small) (jason)", [ input: gen_small_sample() ] do
+    Jason.encode!(input)
     :ok
   end
 

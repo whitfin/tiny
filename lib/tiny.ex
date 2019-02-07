@@ -256,7 +256,7 @@ defmodule Tiny do
   # such as `-0.12` are valid, so we need to make sure we can detect these cases.
   defp enforce_zero(<< val, rest :: binary >>, acc) when val in '.eE',
     do: detect_number(rest, acc + 1, 1)
-  defp enforce_zero(<< val, _rest :: binary >>, acc) when not val in '0123456789+-',
+  defp enforce_zero(<< val, _rest :: binary >>, acc) when not(val in '0123456789+-'),
     do: acc
   defp enforce_zero(<< >>, acc), do: acc
 
