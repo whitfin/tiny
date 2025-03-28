@@ -1,7 +1,7 @@
 defmodule Tiny.Mixfile do
   use Mix.Project
 
-  @version "1.0.1"
+  @version "1.0.2"
   @url_docs "http://hexdocs.pm/tiny"
   @url_github "https://github.com/whitfin/tiny"
 
