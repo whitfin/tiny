@@ -1,35 +1,45 @@
 defmodule Tiny.Mixfile do
   use Mix.Project
 
+  @version "1.0.1"
   @url_docs "http://hexdocs.pm/tiny"
   @url_github "https://github.com/whitfin/tiny"
 
   def project do
-    [app: :tiny,
-     name: "Tiny",
-     description: "Tiny JSON parser for Elixir",
-     version: "1.0.1",
-     elixir: "~> 1.2",
-     deps: deps(),
-     package: %{
-       files: [
-         "lib",
-         "mix.exs",
-         "LICENSE",
-         "README.md"
-       ],
-       licenses: [ "MIT" ],
-       links: %{
-         "Docs" => @url_docs,
-         "GitHub" => @url_github
-       },
-       maintainers: [ "Isaac Whitfield" ]
-     },
-     docs: [
-       extras: [ "README.md" ],
-       source_ref: "master",
-       source_url: @url_github
-     ]]
+    [
+      app: :tiny,
+      name: "Tiny",
+      description: "Tiny JSON parser for Elixir",
+      package: %{
+        files: [
+          "lib",
+          "mix.exs",
+          "LICENSE",
+          "README.md"
+        ],
+        licenses: ["MIT"],
+        links: %{
+          "Docs" => @url_docs,
+          "GitHub" => @url_github
+        },
+        maintainers: ["Isaac Whitfield"]
+      },
+      version: @version,
+      elixir: "~> 1.2",
+      deps: deps(),
+      docs: [
+        extras: ["README.md"],
+        source_ref: "main",
+        source_url: @url_github
+      ],
+      test_coverage: [
+        tool: ExCoveralls
+      ],
+      preferred_cli_env: [
+        docs: :docs,
+        credo: :lint
+      ]
+    ]
   end
 
   # Configuration for the OTP application
@@ -50,17 +60,12 @@ defmodule Tiny.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
-      # Dependencies only used for local development and testing
-      { :credo,  "~> 0.5",  optional: true, only: [ :dev, :test ] },
-      { :ex_doc, "~> 0.14", optional: true, only: [ :dev, :test ] },
-      { :exprof, "~> 0.2",  optional: true, only: [ :dev, :test ] },
-      # Dependencies only used when benchmarking JSON libraries
-      { :benchfella, "~> 0.3", optional: true, only: [ :dev, :test ] },
-      # JSON libraries used when setting up benchmarking suites
-      { :exjsx,   "~> 4.0", optional: true, only: [ :dev, :test ] },
-      { :jiffy,  "~> 0.15", optional: true, only: [ :dev, :test ] },
-      { :jason,  "~> 1.1",  optional: true, only: [ :dev, :test ] },
-      { :poison,  "~> 4.0", optional: true, only: [ :dev, :test ] }
+      # Linting dependencies
+      {:credo, "~> 1.7", optional: true, only: [:lint]},
+      # Documentation dependencies
+      {:ex_doc, "~> 0.29", optional: true, only: [:docs]},
+      # Testing dependencies
+      {:excoveralls, "~> 0.15", optional: true, only: [:cover]}
     ]
   end
 end

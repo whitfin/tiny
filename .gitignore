@@ -4,8 +4,8 @@
 # Benchmark directory for storing local performance tests.
 /bench/*
 !/bench/resources
-!/bench/decode_bench.exs
-!/bench/encode_bench.exs
+!/bench/decode.exs
+!/bench/encode.exs
 
 # If you run "mix test --cover", coverage assets end up here.
 /cover

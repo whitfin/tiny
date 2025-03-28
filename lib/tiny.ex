@@ -21,7 +21,7 @@ defmodule Tiny do
   when required. This is due to functions which operate differently based on
   the numeric typing.
   """
-  use Bitwise
+  import Bitwise
 
   ############
   # Constants
@@ -122,7 +122,7 @@ defmodule Tiny do
   # TODO: Is the first iteration block necessary?
   # TODO: Can we compile the padded sequences for better performance?
   defp encode_escape(""), do: []
-  for { key, replace } <- List.zip([ '"\\\n\t\r\f\b', '"\\ntrfb' ]) do
+  for { key, replace } <- Enum.zip([ ~c'"\\\n\t\r\f\b', ~c'"\\ntrfb' ]) do
     defp encode_escape(<< unquote(key), rest :: binary >>),
       do: [ unquote("\\" <> << replace >>) | encode_escape(rest) ]
   end
@@ -196,7 +196,7 @@ defmodule Tiny do
   defp do_decode(<< "true",  rem :: binary >>), do: { strip_ws(rem), true }
   defp do_decode(<< "false", rem :: binary >>), do: { strip_ws(rem), false }
   defp do_decode(<< "null",  rem :: binary >>), do: { strip_ws(rem), nil }
-  defp do_decode(<< val, _rest :: binary >> = bin) when val in '0123456789-',
+  defp do_decode(<< val, _rest :: binary >> = bin) when val in ~c'0123456789-',
     do: decode_number(bin)
 
   # Entry point for decoding an array binary. We have a match on a terminating
@@ -245,18 +245,18 @@ defmodule Tiny do
     do: enforce_zero(rest, acc + 1)
   defp detect_number(<< ".", rest :: binary >>, acc, _zero),
     do: detect_number(rest, acc + 1, 1)
-  defp detect_number(<< val, rest :: binary >>, acc, _zero) when val in '123456789.eE',
+  defp detect_number(<< val, rest :: binary >>, acc, _zero) when val in ~c'123456789.eE',
     do: detect_number(rest, acc + 1, 1)
-  defp detect_number(<< val, rest :: binary >>, acc, zero) when val in '0-+',
+  defp detect_number(<< val, rest :: binary >>, acc, zero) when val in ~c'0-+',
     do: detect_number(rest, acc + 1, zero)
   defp detect_number(_bin, acc, _zero), do: acc
 
   # Enforces that a zero has a correct character following it in order to parse
   # and reject as necessary. JSON dictates that `-012` is invalid but that things
   # such as `-0.12` are valid, so we need to make sure we can detect these cases.
-  defp enforce_zero(<< val, rest :: binary >>, acc) when val in '.eE',
+  defp enforce_zero(<< val, rest :: binary >>, acc) when val in ~c'.eE',
     do: detect_number(rest, acc + 1, 1)
-  defp enforce_zero(<< val, _rest :: binary >>, acc) when not(val in '0123456789+-'),
+  defp enforce_zero(<< val, _rest :: binary >>, acc) when val not in ~c'0123456789+-',
     do: acc
   defp enforce_zero(<< >>, acc), do: acc
 
@@ -339,12 +339,12 @@ defmodule Tiny do
   # enforce some rules related to what makes a surrogate pair (in the guards),
   # before converting the pair to a codepoint. If this is confusing, the Wiki
   # page for UTF-16 has a fairly good overview of what exactly is going on here.
-  for { key, replace } <- List.zip(['"\\ntr/fb', '"\\\n\t\r/\f\b']) do
+  for { key, replace } <- Enum.zip([ ~c'"\\ntr/fb', ~c'"\\\n\t\r/\f\b' ]) do
     defp string_escape(<< unquote(key), rest :: binary >>),
       do: { rest, unquote(replace) }
   end
   defp string_escape(<< ?u, l1, l2, l3, l4, "\\u", r1, r2, r3, r4, rest :: binary >>)
-  when l1 in 'dD' and r1 in 'dD' and l2 in '89abAB' and r2 in 'cdefCDEF' do
+  when l1 in ~c'dD' and r1 in ~c'dD' and l2 in ~c'89abAB' and r2 in ~c'cdefCDEF' do
     c1 = :erlang.list_to_integer([l1, l2, l3, l4], 16) &&& 0x03FF
     c2 = :erlang.list_to_integer([r1, r2, r3, r4], 16) &&& 0x03FF
     { rest, << (0x10000 + (c1 <<< 10) + c2) :: utf8 >> }
@@ -372,7 +372,7 @@ defmodule Tiny do
   # more than just `1` depending on where the codepoint value lies in the table.
   defp detect_string(<< val, _rest :: binary >>, acc, _ca) when val <= 0x1F,
     do: valid_count!(acc)
-  defp detect_string(<< val, _rest :: binary >>, acc, _ca) when val in '"\\',
+  defp detect_string(<< val, _rest :: binary >>, acc, _ca) when val in ~c'"\\',
     do: valid_count!(acc)
   defp detect_string(<< val, rest :: binary >>, acc, ca) when val < 0x80,
     do: detect_string(rest, acc + 1, ca)
@@ -382,7 +382,7 @@ defmodule Tiny do
   # Strips leading whitespace from an input binary, by subreferencing the binary.
   # This means that we don't create anything new, purely reference what already
   # exists. We make sure to cover all forms of whitespace when stripping.
-  defp strip_ws(<< v, rest :: binary >>) when v in '\s\n\t\r', do: strip_ws(rest)
+  defp strip_ws(<< v, rest :: binary >>) when v in ~c'\s\n\t\r', do: strip_ws(rest)
   defp strip_ws(rest), do: rest
 
   # Simply checks to see whether we have a valid count or not - with a valid
