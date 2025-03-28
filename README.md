@@ -1,5 +1,5 @@
 # Tiny
-[![Build Status](https://img.shields.io/github/actions/workflow/status/whitfin/tiny/ci.yml?branch=main)](https://github.com/whitfin/tiny/actions) [![Coverage Status](https://img.shields.io/coveralls/whitfin/tiny.svg)](https://coveralls.io/github/whitfin/tiny) [![Hex.pm Version](https://img.shields.io/hexpm/v/tiny.svg)](https://hex.pm/packages/tiny) [![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://hexdocs.pm/tiny/)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/whitfin/tiny/ci.yml?branch=main)](https://github.com/whitfin/tiny/actions) [![Hex.pm Version](https://img.shields.io/hexpm/v/tiny.svg)](https://hex.pm/packages/tiny) [![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://hexdocs.pm/tiny/)
 
 Tiny is a JSON parser for Elixir written using efficient function head matches where possible.
 

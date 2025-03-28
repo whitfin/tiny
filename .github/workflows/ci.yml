@@ -16,6 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         elixir:
+          - '1.19'
           - '1.18'
           - '1.17'
           - '1.16'
@@ -41,44 +42,3 @@ jobs:
 
       - name: Run Tests
         run: mix test --trace
-
-  bench:
-    if: github.ref == 'refs/heads/main'
-    name: Benchmark
-    runs-on: ubuntu-latest
-    container:
-      image: elixir:1.18
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Environment
-        run: |
-          epmd -daemon
-          mix local.hex --force
-          mix local.rebar --force
-          mix deps.get
-
-      - name: Run Benchmarks
-        run: mix bench
-
-  coverage:
-    name: Coverage
-    runs-on: ubuntu-latest
-    container:
-      image: elixir:1.18
-    env:
-      MIX_ENV: cover
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Environment
-        run: |
-          epmd -daemon
-          mix local.hex --force
-          mix local.rebar --force
-          mix deps.get
-
-      - name: Generate Coverage
-        run: mix coveralls.github
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

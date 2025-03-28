@@ -60,12 +60,7 @@ defmodule Tiny.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
-      # Linting dependencies
-      {:credo, "~> 1.7", optional: true, only: [:lint]},
-      # Documentation dependencies
-      {:ex_doc, "~> 0.29", optional: true, only: [:docs]},
-      # Testing dependencies
-      {:excoveralls, "~> 0.15", optional: true, only: [:cover]}
+      {:ex_doc, "~> 0.29", optional: true, only: [:docs]}
     ]
   end
 end
