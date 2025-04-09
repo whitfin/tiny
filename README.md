@@ -33,21 +33,21 @@ Realistically, most people will likely opt for one of the other parsers availabl
 
 Tiny is on Hex, and you can install it using the usual:
 
-  1. Add `tiny` to your list of dependencies in `mix.exs`:
+1. Add `tiny` to your list of dependencies in `mix.exs`:
 
-    ```elixir
-    def deps do
-      [{:tiny, "~> 1.0"}]
-    end
-    ```
+```elixir
+def deps do
+  [{:tiny, "~> 1.0"}]
+end
+```
 
-  2. Ensure `tiny` is started before your application:
+2. Ensure `tiny` is started before your application:
 
-    ```elixir
-    def application do
-      [applications: [:tiny]]
-    end
-    ```
+```elixir
+def application do
+  [applications: [:tiny]]
+end
+```
 
 ## Usage
 
